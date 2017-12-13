@@ -1,135 +1,76 @@
 require_relative 'platform'
 
 module LicenseFinder
-  class Configuration
-    def self.with_optional_saved_config(primary_config)
-      project_path = Pathname(primary_config.fetch(:project_path, Pathname.pwd)).expand_path
-      config_file =  project_path.join('config', 'license_finder.yml')
-      saved_config = config_file.exist? ? YAML.safe_load(config_file.read) : {}
-      new(primary_config, saved_config)
-    end
+  class GlobalConfiguration
+    class << self
 
-    def initialize(primary_config, saved_config)
-      @primary_config = primary_config
-      @saved_config = saved_config
+      attr_accessor(
+          :decisions_file,
+          :go_full_version,
+          :gradle_command,
+          :gradle_include_groups,
+          :maven_include_groups,
+          :maven_options,
+          :pip_requirements_path,
+          :rebar_command,
+          :rebar_deps_dir,
+          :mix_command,
+          :mix_deps_dir,
+          :save_file,
+          :prepare,
+          :prepare_no_fail,
+          :format,
+          :columns,
+          :aggregate_paths,
+          :recursive,
+          :logger
+      )
+
+      def configure(config)
+        project_path = Pathname(config.fetch(:project_path, Pathname.pwd)).expand_path
+        saved_config_file =  project_path.join('config', 'license_finder.yml')
+
+        @saved_config = saved_config_file.exist? ? YAML.safe_load(saved_config_file.read) : {}
+        @primary_config = config
+        @decision_file = get(:decisions_file)
+        @go_full_version = get(:go_full_version)
+        @gradle_command = get(:gradle_command)
+        @gradle_include_groups = get(:gradle_include_groups)
+        @maven_include_groups = get(:maven_include_groups)
+        @maven_options = get(:maven_options)
+        @pip_requirements_path = get(:pip_requirements_path)
+        @rebar_command = get(:rebar_command)
+        @prepare_no_fail = get(:prepare_no_fail)
+        @prepare = get(:prepare) || @prepare_no_fail
+        @save_file = get(:save)
+        @aggregate_paths = get(:aggregate_paths)
+        @recursive = get(:recursive)
+        @format = get(:format)
+        @columns = get(:columns)
+        @mix_command = get(:mix_command) || 'mix'
+        @rebar_deps_dir = get(:rebar_deps_dir) || 'deps'
+        @mix_deps_dir = get(:mix_deps_dir) || 'deps'
+        @decisions_file_path = get(:decisions_file) || 'doc/dependency_decisions.yml'
+        @logger = LicenseFinder::Logger.new get(:logger)
+      end
+
+      def get(key)
+        @primary_config[key.to_sym] || @saved_config[key.to_s]
+      end
+    end
+  end
+
+  class ProjectConfiguration
+
+    attr_reader(:project_path)
+
+    def initialize(project_path)
+      @project_path = Pathname(project_path, Pathname.pwd).expand_path
     end
 
     def valid_project_path?
       return project_path.exist? if get(:project_path)
       true
-    end
-
-    def mix_command
-      get(:mix_command) || 'mix'
-    end
-
-    def merge(other_hash)
-      dup_with other_hash
-    end
-
-    def rebar_deps_dir
-      path = get(:rebar_deps_dir) || 'deps'
-      project_path.join(path).expand_path
-    end
-
-    def mix_deps_dir
-      path = get(:mix_deps_dir) || 'deps'
-      project_path.join(path).expand_path
-    end
-
-    def decisions_file_path
-      path = get(:decisions_file) || 'doc/dependency_decisions.yml'
-      project_path.join(path).expand_path
-    end
-
-    def project_path
-      Pathname(path_prefix).expand_path
-    end
-
-    def logger_mode
-      get(:logger)
-    end
-
-    def gradle_command
-      get(:gradle_command)
-    end
-
-    def go_full_version
-      get(:go_full_version)
-    end
-
-    def gradle_include_groups
-      get(:gradle_include_groups)
-    end
-
-    def maven_include_groups
-      get(:maven_include_groups)
-    end
-
-    def maven_options
-      get(:maven_options)
-    end
-
-    def pip_requirements_path
-      get(:pip_requirements_path)
-    end
-
-    def rebar_command
-      get(:rebar_command)
-    end
-
-    def prepare
-      get(:prepare) || prepare_no_fail
-    end
-
-    def prepare_no_fail
-      get(:prepare_no_fail)
-    end
-
-    def save_file
-      get(:save)
-    end
-
-    def aggregate_paths
-      get(:aggregate_paths)
-    end
-
-    def recursive
-      get(:recursive)
-    end
-
-    def format
-      get(:format)
-    end
-
-    def columns
-      get(:columns)
-    end
-
-    protected
-
-    attr_accessor :primary_config
-    def dup_with(other_hash)
-      dup.tap do |dup|
-        dup.primary_config.merge!(other_hash)
-      end
-    end
-
-    private
-
-    attr_reader :saved_config
-
-    def get(key)
-      @primary_config[key.to_sym] || @saved_config[key.to_s]
-    end
-
-    def initialize_copy(orig)
-      super
-      @primary_config = @primary_config.dup
-    end
-
-    def path_prefix
-      get(:project_path) || ''
     end
   end
 end

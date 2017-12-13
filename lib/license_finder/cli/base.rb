@@ -10,12 +10,13 @@ module LicenseFinder
 
       no_commands do
         def decisions
-          @decisions ||= DecisionsFactory.decisions(config.decisions_file_path)
+          @decisions ||= DecisionsFactory.decisions
         end
+      end
 
-        def config
-          @config ||= Configuration.with_optional_saved_config(license_finder_config)
-        end
+      def initialize(*args)
+        super
+        GlobalConfiguration.configure(license_finder_config)
       end
 
       private
