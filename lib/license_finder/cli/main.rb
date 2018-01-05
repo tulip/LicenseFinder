@@ -83,7 +83,7 @@ module LicenseFinder
       shared_options
       format_option
       def action_items
-        finder = LicenseAggregator.new(config, aggregate_paths)
+        finder = LicenseAggregator.new(project_config, aggregate_paths)
         any_packages = finder.any_packages?
         unapproved = finder.unapproved
         blacklisted = finder.blacklisted
@@ -122,9 +122,9 @@ module LicenseFinder
       method_option :save, desc: "Save report to a file. Default: 'license_report.csv' in project root.", lazy_default: 'license_report'
 
       def report
-        finder = LicenseAggregator.new(config, aggregate_paths)
+        finder = LicenseAggregator.new(project_config, aggregate_paths)
         report = report_of(finder.dependencies)
-        save? ? save_report(report, config.save_file) : say(report)
+        save? ? save_report(report, GlobalConfiguration.save_file) : say(report)
       end
 
       desc 'version', 'Print the version of LicenseFinder'
@@ -139,7 +139,7 @@ module LicenseFinder
         f1 = IO.read(file1)
         f2 = IO.read(file2)
         report = DiffReport.new(Diff.compare(f1, f2))
-        save? ? save_report(report, config.save_file) : say(report)
+        save? ? save_report(report, GlobalConfiguration.save_file) : say(report)
       end
 
       subcommand 'dependencies', Dependencies, 'Add or remove dependencies that your package managers are not aware of'
@@ -154,16 +154,16 @@ module LicenseFinder
       private
 
       def check_valid_project_path
-        raise "Project path '#{config.project_path}' does not exist!" unless config.valid_project_path?
+        raise "Project path '#{project_config.project_path}' does not exist!" unless project_config.valid_project_path?
       end
 
       def aggregate_paths
         check_valid_project_path
-        aggregate_paths = config.aggregate_paths
-        project_path = config.project_path || Pathname.pwd
-        aggregate_paths = ProjectFinder.new(project_path).find_projects if config.recursive
+        aggregate_paths = GlobalConfiguration.aggregate_paths
+        project_path = project_config.project_path || Pathname.pwd
+        aggregate_paths = ProjectFinder.new(project_path).find_projects if GlobalConfiguration.recursive
         return aggregate_paths unless aggregate_paths.nil? || aggregate_paths.empty?
-        [config.project_path] unless config.project_path.nil?
+        [project_config.project_path] unless project_config.project_path.nil?
       end
 
       def save_report(content, file_name)
@@ -173,13 +173,13 @@ module LicenseFinder
       end
 
       def report_of(content)
-        report = FORMATS[config.format] || FORMATS['text']
-        report = MergedReport if report == CsvReport && config.aggregate_paths
-        report.of(content, columns: config.columns, project_name: decisions.project_name || config.project_path.basename.to_s)
+        report = FORMATS[GlobalConfiguration.format] || FORMATS['text']
+        report = MergedReport if report == CsvReport && GlobalConfiguration.aggregate_paths
+        report.of(content, columns: GlobalConfiguration.columns, project_name: decisions.project_name || project_config.project_path.basename.to_s)
       end
 
       def save?
-        !!config.save_file
+        !!GlobalConfiguration.save_file
       end
     end
   end

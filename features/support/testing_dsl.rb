@@ -6,9 +6,9 @@ module LicenseFinder
     class User
       def run_license_finder(path = nil, options = '')
         if path
-          execute_command_in_path("license_finder --quiet #{options}", Paths.project("my_app/#{path}"))
+          execute_command_in_path("license_finder #{options}", Paths.project("my_app/#{path}"))
         else
-          execute_command "license_finder --quiet #{options}"
+          execute_command "license_finder #{options}"
         end
       end
 
@@ -552,6 +552,7 @@ module LicenseFinder
       end
     end
 
+    require 'open3'
     module Shell
       ERROR_MESSAGE_FORMAT = <<ERRORFORMAT.freeze
 Command failed: `%s`
@@ -560,8 +561,7 @@ exit: %d
 ERRORFORMAT
 
       def self.run(command, allow_failures = false)
-        output = `#{command} 2>&1`
-        status = $CHILD_STATUS
+        output, _error, status = Open3.capture3(command)
         unless status.success? || allow_failures
           message = format ERROR_MESSAGE_FORMAT, command, output.chomp, status.exitstatus
           raise message

@@ -31,7 +31,7 @@ module LicenseFinder
     end
 
     def initialize(name, version = nil, options = {})
-      @logger = options[:logger] || Core.default_logger
+      @logger = GlobalConfiguration.logger
 
       ## DESCRIPTION
       @name = name

@@ -3,15 +3,15 @@ module LicenseFinder
     PACKAGE_MANAGERS = [GoDep, GoWorkspace, Go15VendorExperiment, Glide, Gvt, Govendor, Dep, Bundler, NPM, Pip,
                         Yarn, Bower, Maven, Gradle, CocoaPods, Rebar, Nuget, Carthage, Mix, Conan].freeze
 
-    def initialize(options = { project_path: Pathname.new('') })
+    def initialize(options = {})
       @options = options
       @project_path = options[:project_path]
-      @logger = options[:logger]
+      @logger = GlobalConfiguration.logger
     end
 
     def active_packages
       package_managers = active_package_managers
-      installed_package_managers = package_managers.select { |pm| pm.class.installed?(@logger) }
+      installed_package_managers = package_managers.select { |pm| pm.class.installed? }
       installed_package_managers.flat_map(&:current_packages_with_relations)
     end
 

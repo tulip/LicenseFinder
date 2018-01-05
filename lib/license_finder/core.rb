@@ -13,49 +13,38 @@ require 'license_finder/scanner'
 module LicenseFinder
   # Coordinates setup
   class Core
-    attr_reader :config
+    attr_reader :project_config
 
-    def self.default_logger
-      Logger.new
-    end
+    extend Forwardable
+    def_delegators :decision_applier, :acknowledged, :unapproved, :blacklisted, :any_packages?
 
-    # Default +options+:
-    # {
-    #   project_path: Pathname.pwd
-    #   logger: {},   # can include quiet: true or debug: true
-    #   decisions_file: "doc/dependency_decisions.yml",
-    #   gradle_command: "gradle",
-    #   rebar_command: "rebar",
-    #   rebar_deps_dir: "deps",
-    # }
-    def initialize(configuration)
-      @logger = Logger.new(configuration.logger_mode)
-      @config = configuration
+    def initialize(project_config)
+      @project_config = project_config
       @scanner = Scanner.new(options)
     end
 
     def modifying
       yield
-      decisions.save!(config.decisions_file_path)
+      decisions.save!(GlobalConfiguration.decisions_file_path)
     end
 
-    extend Forwardable
-    def_delegators :decision_applier, :acknowledged, :unapproved, :blacklisted, :any_packages?
 
     def project_name
-      decisions.project_name || config.project_path.basename.to_s
+      decisions.project_name || project_config.project_path.basename.to_s
     end
 
     def project_path
-      config.project_path
+      project_config.project_path
     end
 
     def decisions
-      @decisions ||= DecisionsFactory.decisions(config.decisions_file_path)
+      @decisions ||= DecisionsFactory.decisions
     end
 
     def prepare_projects
+      logger = options[:logger]
       package_managers = @scanner.active_package_managers
+
       package_managers.each do |manager|
         logger.debug manager.class, 'Running prepare on project'
         manager.prepare
@@ -64,8 +53,6 @@ module LicenseFinder
     end
 
     private
-
-    attr_reader :logger
 
     # The core of the system. The saved decisions are applied to the current
     # packages.
@@ -82,21 +69,21 @@ module LicenseFinder
 
     def options
       {
-        logger: logger,
-        project_path: config.project_path,
+        logger: GlobalConfiguration.logger,
+        project_path: project_config.project_path,
         ignored_groups: decisions.ignored_groups,
-        go_full_version: config.go_full_version,
-        gradle_command: config.gradle_command,
-        gradle_include_groups: config.gradle_include_groups,
-        maven_include_groups: config.maven_include_groups,
-        maven_options: config.maven_options,
-        pip_requirements_path: config.pip_requirements_path,
-        rebar_command: config.rebar_command,
-        rebar_deps_dir: config.rebar_deps_dir,
-        mix_command: config.mix_command,
-        mix_deps_dir: config.mix_deps_dir,
-        prepare: config.prepare,
-        prepare_no_fail: config.prepare_no_fail
+        go_full_version: GlobalConfiguration.go_full_version,
+        gradle_command: GlobalConfiguration.gradle_command,
+        gradle_include_groups: GlobalConfiguration.gradle_include_groups,
+        maven_include_groups: GlobalConfiguration.maven_include_groups,
+        maven_options: GlobalConfiguration.maven_options,
+        pip_requirements_path: GlobalConfiguration.pip_requirements_path,
+        rebar_command: GlobalConfiguration.rebar_command,
+        rebar_deps_dir: GlobalConfiguration.rebar_deps_dir,
+        mix_command: GlobalConfiguration.mix_command,
+        mix_deps_dir: GlobalConfiguration.mix_deps_dir,
+        prepare: GlobalConfiguration.prepare,
+        prepare_no_fail: GlobalConfiguration.prepare_no_fail
       }
     end
   end

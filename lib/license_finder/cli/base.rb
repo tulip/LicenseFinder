@@ -9,13 +9,19 @@ module LicenseFinder
                    desc: 'Where decisions are saved. Defaults to doc/dependency_decisions.yml.'
 
       no_commands do
-        def decisions
-          @decisions ||= DecisionsFactory.decisions(config.decisions_file_path)
+        def project_config
+          @project_config
         end
 
-        def config
-          @config ||= Configuration.with_optional_saved_config(license_finder_config)
+        def decisions
+          @decisions ||= DecisionsFactory.decisions
         end
+      end
+
+      def initialize(*args)
+        super
+        GlobalConfiguration.configure(license_finder_config)
+        @project_config = ProjectConfiguration.new(project_options)
       end
 
       private
@@ -48,6 +54,10 @@ module LicenseFinder
         ).merge(
           logger: logger_mode
         )
+      end
+
+      def project_options
+        extract_options(:project_path)[:project_path]
       end
 
       def logger_mode

@@ -21,7 +21,8 @@ module LicenseFinder
         nil
       end
 
-      def installed?(logger = Core.default_logger)
+      def installed?
+        logger = GlobalConfiguration.logger
         if package_management_command.nil?
           logger.debug self, 'no command defined' # TODO: comment me out
           true
@@ -58,7 +59,7 @@ module LicenseFinder
 
     def initialize(options = {})
       @prepare_no_fail = options[:prepare_no_fail]
-      @logger       = options[:logger] || Core.default_logger
+      @logger       = GlobalConfiguration.logger
       @project_path = options[:project_path]
     end
 

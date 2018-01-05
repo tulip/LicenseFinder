@@ -38,7 +38,7 @@ describe 'License Finder command line executable' do
     expect(developer).to be_seeing 'No dependencies recognized!'
   end
 
-  specify 'displays an error if project_path does not exist' do
+  specify 'displays an error if project_path does not exist', :focus do
     developer.create_empty_project
 
     path = '/path/that/does/not/exist'
@@ -51,7 +51,7 @@ describe 'License Finder command line executable' do
     project = LicenseFinder::TestingDSL::BrokenSymLinkDepProject.create
     ENV['GOPATH'] = "#{project.project_dir}/gopath_dep"
     developer.run_license_finder('gopath_dep/src/foo-dep')
-    expect(developer).to be_seeing_something_like %r{ERROR: .*my_app/gopath_dep/src/foo-dep/vendor/a/b/LICENSE does not exists}
+    expect(developer).to be_seeing_something_like %r{ERROR: .*my_app/gopath_dep/src/foo-dep/vendor/a/b/LICENSE does not exist}
   end
 
   specify 'displays a warning if no package managers are active/installed' do

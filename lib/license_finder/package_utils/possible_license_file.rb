@@ -1,8 +1,8 @@
 module LicenseFinder
   class PossibleLicenseFile
-    def initialize(path, options = {})
+    def initialize(path)
       @path = Pathname(path)
-      @logger = options[:logger]
+      @logger = GlobalConfiguration.logger
     end
 
     def path
@@ -17,7 +17,7 @@ module LicenseFinder
       if @path.exist?
         @text ||= (@path.respond_to?(:binread) ? @path.binread : @path.read)
       else
-        @logger.info('ERROR', "#{@path} does not exists", color: :red)
+        @logger.info('ERROR', "#{@path} does not exist", color: :red)
         ''
       end
     end
