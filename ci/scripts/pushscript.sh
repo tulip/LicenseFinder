@@ -1,9 +1,13 @@
 #!/bin/bash
 
+set -e
+
 echo -e "---\n:rubygems_api_key: $GEM_API_KEY" > ~/.gem/credentials
 chmod 0600 ~/.gem/credentials
 
-cd lf-git
+git clone lf-git lf-git-changed
+
+cd lf-git-changed
 build_version=$(ruby -r ./lib/license_finder/version.rb -e "puts LicenseFinder::VERSION")
 built_gem="pkg/license_finder-$build_version.gem"
 
