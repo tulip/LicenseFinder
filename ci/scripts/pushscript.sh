@@ -20,7 +20,9 @@ ssh-add -k ~/.ssh/id_rsa
 if [ -z "$(gem fetch license_finder -v $build_version 2>&1 | grep ERROR)" ]; then
   echo "LicenseFinder-$build_version already exists on Rubygems"
 else
-  rake release
+  rake build
+  rake release:guard_clean
+  rake release:rubygem_push
 fi
 
 export EXIT_STATUS=$?

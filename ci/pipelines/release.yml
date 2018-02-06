@@ -4,7 +4,7 @@ resources:
   source:
     uri: git@github.com:pivotal/LicenseFinder.git
     private_key: ((CfOslBotPrivateKey))
-    branch: master
+    branch: rake-test
 
 - name: lf-image
   type: docker-image
