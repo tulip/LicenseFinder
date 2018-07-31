@@ -1,4 +1,6 @@
 require 'json'
+require 'pry'
+
 module LicenseFinder
   class GoWorkspace < PackageManager
     Submodule = Struct.new :install_path, :revision
@@ -69,6 +71,7 @@ module LicenseFinder
         # with status code 1. Setting GOPATH to nil removes those warnings.
         orig_gopath = ENV['GOPATH']
         ENV['GOPATH'] = nil
+        binding.pry
         val, _stderr, status = Cmd.run('go list -f "{{join .Deps \"\n\"}}" ./...')
         ENV['GOPATH'] = orig_gopath
         raise 'go list failed' unless status.success?
